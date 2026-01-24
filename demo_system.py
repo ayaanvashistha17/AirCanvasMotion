@@ -2,7 +2,7 @@ import cv2
 import time
 
 # Import your two custom modules
-from air_canvas import AirCanvasEngine
+from gesture_detector import AirCanvasEngine
 from motion_detector import MotionDetectorEngine
 
 
