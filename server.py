@@ -4,7 +4,7 @@ import time
 from typing import Generator
 
 import cv2
-from flask import Flask, Response, jsonify, request, send_from_directory
+from flask import Flask, Response, jsonify, request, render_template
 
 from config import CFG
 from camera_manager import CameraManager
@@ -12,7 +12,16 @@ from event_store import EventStore
 from actions import Actions
 from pipeline import Pipeline
 
-app = Flask(__name__, static_folder="web", static_url_path="")
+# ✅ Match your repo structure:
+# app/templates/index.html
+# app/static/style.css
+# app/static/app.js
+app = Flask(
+    __name__,
+    template_folder="app/templates",
+    static_folder="app/static",
+    static_url_path="/app/static"
+)
 
 store = EventStore(CFG.log_path, maxlen=CFG.max_events_in_memory)
 actions = Actions(CFG.snapshot_dir)
@@ -24,11 +33,13 @@ camera = CameraManager(CFG.camera_index, CFG.width, CFG.height)
 _latest_jpeg = None
 _jpeg_lock = threading.Lock()
 
+
 def _encode_jpeg(frame_bgr) -> bytes:
     ok, buf = cv2.imencode(".jpg", frame_bgr)
     if not ok:
         return b""
     return buf.tobytes()
+
 
 def _processing_thread():
     camera.open()
@@ -47,14 +58,12 @@ def _processing_thread():
     finally:
         camera.close()
 
+
 @app.route("/")
 def index():
-    # Serve Jaskaran's UI
-    return send_from_directory("web", "index.html")
+    # ✅ Serves: app/templates/index.html
+    return render_template("index.html")
 
-@app.route("/<path:path>")
-def static_files(path):
-    return send_from_directory("web", path)
 
 @app.route("/video_feed")
 def video_feed():
@@ -63,10 +72,14 @@ def video_feed():
             with _jpeg_lock:
                 jpg = _latest_jpeg
             if jpg:
-                yield (b"--frame\r\n"
-                       b"Content-Type: image/jpeg\r\n\r\n" + jpg + b"\r\n")
+                yield (
+                    b"--frame\r\n"
+                    b"Content-Type: image/jpeg\r\n\r\n" + jpg + b"\r\n"
+                )
             time.sleep(0.03)
+
     return Response(gen(), mimetype="multipart/x-mixed-replace; boundary=frame")
+
 
 @app.route("/events")
 def events_sse():
@@ -76,12 +89,12 @@ def events_sse():
       const es = new EventSource("/events");
       es.onmessage = (e) => console.log(JSON.parse(e.data));
     """
+
     def gen():
         last_len = 0
         while True:
             events = store.latest(50)
-            if len(events) != last_len:
-                # Send only the newest event (simple + low bandwidth)
+            if len(events) != last_len and len(events) > 0:
                 newest = events[-1]
                 yield f"data: {json.dumps(newest)}\n\n"
                 last_len = len(events)
@@ -89,9 +102,11 @@ def events_sse():
 
     return Response(gen(), mimetype="text/event-stream")
 
+
 @app.route("/api/latest_events")
 def api_latest_events():
     return jsonify(store.latest(50))
+
 
 @app.route("/api/mode", methods=["GET", "POST"])
 def api_mode():
@@ -106,9 +121,11 @@ def api_mode():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 400
 
+
 def start_background_processing():
     t = threading.Thread(target=_processing_thread, daemon=True)
     t.start()
+
 
 if __name__ == "__main__":
     start_background_processing()
