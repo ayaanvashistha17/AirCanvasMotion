@@ -16,12 +16,28 @@
             <h1>Motion Monitor</h1>
             <p>Real-time surveillance dashboard</p>
         </div>
-        <div class="system-status">
-            <div class="status-display">
-                <div class="status-label">SYSTEM STATUS</div>
-                <div class="status-value" id="headerStatus">
-                    <span class="status-indicator" id="statusIndicator"></span>
-                    <span id="systemStatus">Monitoring Active</span>
+        <div class="header-right">
+            <!-- Mode Switch -->
+            <div class="mode-switch-container">
+                <div class="mode-label">MODE</div>
+                <div class="mode-switch">
+                    <button class="mode-button" id="demoModeBtn" onclick="switchMode('demo')">Demo</button>
+                    <button class="mode-button" id="liveModeBtn" onclick="switchMode('live')">Live</button>
+                </div>
+                <div class="backend-status" id="backendStatus" style="display: none;">
+                    <div class="backend-status-dot" id="backendStatusDot"></div>
+                    <span id="backendStatusText">Disconnected</span>
+                </div>
+            </div>
+            
+            <!-- System Status -->
+            <div class="system-status">
+                <div class="status-display">
+                    <div class="status-label">SYSTEM STATUS</div>
+                    <div class="status-value" id="headerStatus">
+                        <span class="status-indicator" id="statusIndicator"></span>
+                        <span id="systemStatus">Monitoring Active</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -142,7 +158,7 @@
     </div>
 
     <!-- Demo Controls -->
-    <div class="demo-controls">
+    <div class="demo-controls visible" id="demoControls">
         <h3>Demo Controls</h3>
         <button class="demo-button primary" onclick="triggerMotion()">Trigger Motion</button>
         <button class="demo-button" onclick="autoMode()">Auto Mode (5x)</button>
@@ -150,5 +166,6 @@
     </div>
 
     <script src="/app/static/app.js"></script>
+    <script src="/app/static/backend-integration.js"></script>
 </body>
 </html>
