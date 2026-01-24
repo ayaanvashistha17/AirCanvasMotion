@@ -12,10 +12,6 @@ from event_store import EventStore
 from actions import Actions
 from pipeline import Pipeline
 
-# ✅ Match your repo structure:
-# app/templates/index.html
-# app/static/style.css
-# app/static/app.js
 app = Flask(
     __name__,
     template_folder="app/templates",
