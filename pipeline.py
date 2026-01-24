@@ -1,7 +1,6 @@
 import time
 from typing import Any, Dict, List, Tuple
 
-import cv2
 import numpy as np
 
 from config import CFG
@@ -10,27 +9,38 @@ from actions import Actions
 
 Event = Dict[str, Any]
 
+
+class _NoOpGestureDetector:
+    """Fallback gesture detector so the program never crashes."""
+    def process(self, frame: np.ndarray) -> Tuple[np.ndarray, List[Event]]:
+        return frame, []
+
+
 class Pipeline:
     """
     Core loop logic:
-    frame -> detector -> (events, annotated_frame) -> store -> actions
+    frame -> detector -> (annotated_frame, events) -> actions -> store
     """
     def __init__(self, store: EventStore, actions: Actions):
         self.store = store
         self.actions = actions
         self.mode = CFG.default_mode  # "motion" or "gesture"
 
-        # Detectors are provided by teammates; they must never open camera.
-        # Expected detector function:
-        #   annotated_frame, events = detector.process(frame)
+        # Detectors must never open the camera.
         from detectors.motion_detector import MotionDetector  # Zohair
         from detectors.gesture_detector import GestureDetector  # Zohair
 
         self.motion = MotionDetector()
-        self.gesture = GestureDetector()
 
-        self.last_frame: np.ndarray | None = None
-        self.last_annotated: np.ndarray | None = None
+        # ✅ Critical: gesture must NOT be allowed to kill the whole program
+        try:
+            self.gesture = GestureDetector()
+        except Exception as e:
+            print(f"⚠️ GestureDetector failed to init. Gesture mode disabled. Reason: {e}")
+            self.gesture = _NoOpGestureDetector()
+
+        self.last_frame = None
+        self.last_annotated = None
         self._last_time = 0.0
 
     def set_mode(self, mode: str) -> None:
@@ -49,7 +59,7 @@ class Pipeline:
         """
         annotated, events = self._run_detector(frame)
 
-        # Standardize event format
+        # Standardize + store events
         for e in events:
             e.setdefault("type", self.mode)
             e.setdefault("confidence", None)
@@ -68,7 +78,7 @@ class Pipeline:
 
     def run_forever_generator(self):
         """
-        A throttled generator interface used by the server to pull processed frames.
+        Throttled generator used by the server to pull processed frames.
         """
         min_dt = 1.0 / max(1, CFG.fps_limit)
         while True:
