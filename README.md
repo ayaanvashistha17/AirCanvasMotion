@@ -103,6 +103,7 @@ graph TD
     Flask --> |MJPEG Stream| Route
     Route ==> |Http Response| Browser
     UI -.-> |User Controls| Browser
+    ```
 
 ⚙️ Installation & Setup
 Prerequisites
