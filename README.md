@@ -1,4 +1,4 @@
-# ConUHacksXMotionDetector
+# ConUHacksXAirMotionCanvas
 
 🎨 AirMotion Canvas
 
