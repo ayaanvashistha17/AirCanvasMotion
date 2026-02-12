@@ -1,0 +1,14 @@
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv
+*.log
+.DS_Store
+events.jsonl   # if you don't want to commit the large 18MB log file (up to you)
+snapshots/     # if you don't want to commit all those JPEGs (they can bloat the repo)
+logs/

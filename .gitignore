@@ -1,15 +1,14 @@
-# Python
-.venv/
-venv/
+# Ignore the snapshots folder
+snapshots/
+
+# Python cache files
 __pycache__/
 *.pyc
 
-# macOS
+# macOS system files
 .DS_Store
 
-# Logs / runtime outputs
+# Logs and large data files
 logs/
-snapshots/
-
-# Optional
-.env
+events.jsonl
+.venv/
