@@ -102,8 +102,8 @@ graph TD
     Merger --> |Processed Frame| Flask
     Flask --> |MJPEG Stream| Route
     Route ==> |Http Response| Browser
-    UI -.-> |User Controls| Browser
-    ```
+    UI -.-> |User Controls| Browser```
+    
 
 ⚙️ Installation & Setup
 Prerequisites
